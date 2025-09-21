@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import re
-class Interfaz:                  #clase abtracta, modelo de interfaz(debe ser heredada por las diferentes clases usuario)
+class Interfaz:                  #clase abstracta, modelo de interfaz(debe ser heredada por las diferentes clases usuario)
     @abstractmethod              
     def enviar_mensaje(self, destinatario, asunto, contenido): 
         pass
@@ -41,7 +41,7 @@ class Servidor:                     #La clase servidor se encarga de articular l
           """))
         
           if opciones == 1:
-              destinatario_correo = input("Ingrese la direccion correo electronico de el destinatario")
+              destinatario_correo = input("Ingrese la direccion correo electronico de el destinatario: ")
               destinatario = next((usuario for usuario in self.usuarios if usuario.correo == destinatario_correo), None)
               if destinatario:
                   asunto = input("Ingrese el asunto de el mensaje: ")
@@ -68,7 +68,7 @@ class Servidor:                     #La clase servidor se encarga de articular l
           if opciones == 3:
               break
           elif opciones == 1:
-              nombre = input("Decime tu nombre: ") ##esto lo puedo hacer con una funcion e invocarla como hare con ingresar usuario
+              nombre = input("Decime tu nombre: ") 
               correo = input("Decime tu correo: ")
               while True:
                   contraseña = input("Contraseña (debe tener al menos 6 caracteres, un numero, mayusculas y minusculas )")
@@ -95,7 +95,7 @@ class Mensaje: #Definimos la clase mensaje
         self.asunto = asunto
         self.contenido = contenido
 
-    def mostrar(self):
+    def mostrar(self):                       #definimos el formato como queremos que se muestren los mensajes en pantalla
         print(f"De: {self.remitente}")
         print(f"Para: {self.destinatario}")
         print(f"Asunto: {self.asunto}")
@@ -103,16 +103,11 @@ class Mensaje: #Definimos la clase mensaje
         print("-" * 30)
 
 # class Carpeta:
-#     def __init__(self, bandeja_entrada, bandeja_salida):
+#     def __init__(self, bandeja_entrada, bandeja_salida): #clase carpeta sin implementacion
 #         self.bandeja_entrada = bandeja_entrada
 #         self.bandeja_salidad = bandeja_salida
 
-# class Servidor:
-#     def __init__(self, usuarios):
-#         self.usuarios = []
-    
-#     def agregar_usuario():
-#         usuario = Usuario(self.nombre, self.correo)
+
         
 
 
@@ -149,8 +144,8 @@ class Usuario(Interfaz): #Clase usuario heredamos los metodos de interfaz, encap
         self.__contraseña = nueva__contraseña           
 
     
-    def enviar_mensaje(self, destinatario, asunto, contenido):
-        mensaje = Mensaje(self.correo, destinatario.correo, asunto, contenido)
+    def enviar_mensaje(self, destinatario, asunto, contenido): #Enviar mensaje es un metodo que instancia la clase Mensaje y guarda estos objetos en una lista que sera la namdeja de salida 
+        mensaje = Mensaje(self.correo, destinatario.correo, asunto, contenido) ## a su ves que guarda una copia de el mismo objeto dentro de la bandeja de entrada de el destinatario 
         self.bandeja_enviados.append(mensaje)  
         destinatario.recibir_mensaje(mensaje)  
 
@@ -160,14 +155,14 @@ class Usuario(Interfaz): #Clase usuario heredamos los metodos de interfaz, encap
 
     
     def mostrar_bandeja_entrada(self):
-        print(f"\nBandeja de entrada de {self.nombre}:")
-        if not self.bandeja_recibidos:
+        print(f"\nBandeja de entrada de {self.nombre}:") #este metodo recorre la lista Bandeja de entrada y nos muestra en pantalla cada objeto
+        if not self.bandeja_recibidos:                    #En caso de no encontrar nada imprime "No hay mensajes"
             print("No hay mensajes.")
         for mensaje in self.bandeja_recibidos:
             mensaje.mostrar()
 
     
-    def mostrar_bandeja_salida(self):
+    def mostrar_bandeja_salida(self):                     #similar al metodo anterior pero con la bandeja de salida
         print(f"\nBandeja de salida de {self.nombre}:")
         if not self.bandeja_enviados:
             print("No hay mensajes enviados.")
@@ -180,8 +175,8 @@ class Usuario(Interfaz): #Clase usuario heredamos los metodos de interfaz, encap
 
         
 def main(): #Funcion Main, pone en marcha el programa al ejecutarlo
-    servidor = Servidor() 
-    servidor.Menu() 
+    servidor = Servidor() #instanciamos la clase Servidor
+    servidor.Menu() #llamamos al metodo menu
    
 if __name__ == "__main__":
     main()     
