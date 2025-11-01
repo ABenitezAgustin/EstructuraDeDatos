@@ -16,7 +16,7 @@ class Servidor:                     #La clase servidor se encarga de articular l
         usuario_actual = next((u for u in self.usuarios if u.correo == correo and u.contraseña == contraseña), None)
 
         if not usuario_actual:
-            print("Credenciales incorrectas.")
+            print("usuario incorrecto.")
             return
         
         print(f"\n¡Bienvenido/a {usuario_actual.nombre}!")
@@ -29,8 +29,9 @@ class Servidor:                     #La clase servidor se encarga de articular l
 (2) Ver bandeja de entrada
 (3) Ver bandeja de salida
 (4) Mover mensaje entre carpetas
-(5) Buscar mensajes
-(6) Salir
+(5) Buscar mensaje
+(6) Agregar subcarpetas
+(7) Salir
 Opción: """))
 
                 if opcion == 1:
@@ -39,7 +40,7 @@ Opción: """))
                     
                     if not destinatario:
                         print("Destinatario no encontrado.")
-                        continue
+                        continue #
 
                     asunto = input("Asunto del mensaje: ")
                     contenido = input("Contenido del mensaje: ")
@@ -63,8 +64,14 @@ Opción: """))
                     usuario_actual.buscar_mensajes(criterio, valor)
                     
                 elif opcion == 6:
-                    print("Sesión finalizada.")
-                    break
+                  carpeta_padre = input("Nombre de la carpeta donde crear la subcarpeta: ")
+                  nombre_subcarpeta = input("Nombre de la nueva subcarpeta: ")
+                  usuario_actual.crear_subcarpeta(carpeta_padre, nombre_subcarpeta)
+
+                elif opcion == 7:
+                  print("Sesión finalizada.")
+                  break
+
 
                 else:
                     print("Opción inválida.")

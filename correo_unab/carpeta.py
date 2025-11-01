@@ -24,10 +24,24 @@ class Carpeta:
 
 
 
-    def mover_mensaje(self, mensaje, carpeta_destino):
-        if mensaje in self.mensajes:
-            self.eliminar_mensaje(mensaje)
-            carpeta_destino.agregar_mensaje(mensaje)
+    def mover_mensaje_recursivo(self, asunto, carpeta_destino):
+    # Buscar el mensaje en la carpeta actual
+      for mensaje in self.mensajes:
+          if mensaje.asunto.lower() == asunto.lower():
+              self.eliminar_mensaje(mensaje)
+              carpeta_destino.agregar_mensaje(mensaje)
+              print(f"Mensaje con asunto '{asunto}' movido desde '{self.nombre}' a '{carpeta_destino.nombre}'.")
+              return True  # Se encontró y movió el mensaje
+
+         # Si no está en esta carpeta, buscar en las subcarpetas (recursivamente)
+      for subcarpeta in self.subcarpetas:
+          encontrado = subcarpeta.mover_mensaje_recursivo(asunto, carpeta_destino)
+          if encontrado:
+            return True  # Si se movió desde una subcarpeta, detenemos la búsqueda
+
+      return False  # No se encontró el mensaje en esta rama
+
+            
     def buscar_mensajes(self, criterio, valor):
       encontrados = []
       for mensaje in self.mensajes:

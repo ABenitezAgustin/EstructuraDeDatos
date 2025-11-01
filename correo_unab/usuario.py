@@ -79,26 +79,35 @@ class Usuario(Interfaz):
             print(f"\nNo se encontraron mensajes con {criterio} que contenga '{valor}'.")
 
     # Mover mensaje entre carpetas
-    def mover_mensaje(self, asunto, nombre_carpeta_origen, nombre_carpeta_destino): # Buscar las carpetas por nombre
-        origen = self.carpeta_principal.buscar_subcarpeta(nombre_carpeta_origen)     #Mueve el primer mensaje que coincida con el asunto desde una carpeta a otra.  
-        destino = self.carpeta_principal.buscar_subcarpeta(nombre_carpeta_destino)
+    def mover_mensaje(self, asunto, nombre_carpeta_origen, nombre_carpeta_destino):
+      origen = self.carpeta_principal.buscar_subcarpeta(nombre_carpeta_origen)
+      destino = self.carpeta_principal.buscar_subcarpeta(nombre_carpeta_destino)
 
-        if not origen:
-            print(f"La carpeta de origen '{nombre_carpeta_origen}' no existe.")
-            return
-        if not destino:
-            print(f"La carpeta de destino '{nombre_carpeta_destino}' no existe.")
-            return
+      if not origen:
+          print(f"La carpeta de origen '{nombre_carpeta_origen}' no existe.")
+          return
+      if not destino:
+          print(f"La carpeta de destino '{nombre_carpeta_destino}' no existe.")
+          return
 
-        # Buscar mensaje por asunto en la carpeta de origen
-        for mensaje in origen.mensajes:
-            if mensaje.asunto.lower() == asunto.lower():
-                origen.eliminar_mensaje(mensaje)
-                destino.agregar_mensaje(mensaje)
-                print(f"Mensaje con asunto '{asunto}' movido de '{nombre_carpeta_origen}' a '{nombre_carpeta_destino}'.")
-                return
+    # Llamamos al nuevo método recursivo
+      movido = origen.mover_mensaje_recursivo(asunto, destino)
+      if not movido:
+          print(f"No se encontró mensaje con asunto '{asunto}' en la carpeta '{nombre_carpeta_origen}' ni en sus subcarpetas.")
+    
+    def crear_subcarpeta(self, nombre_carpeta_padre, nombre_subcarpeta):
+     # Buscar la carpeta padre dentro del árbol
+      carpeta_padre = self.carpeta_principal.buscar_subcarpeta(nombre_carpeta_padre)
+    
+      if not carpeta_padre:
+          print(f"No se encontró la carpeta '{nombre_carpeta_padre}'.")
+          return
+    
+      # Crear la nueva subcarpeta
+      nueva_subcarpeta = Carpeta(nombre_subcarpeta)
+      carpeta_padre.agregar_subcarpeta(nueva_subcarpeta)
+      print(f"Subcarpeta '{nombre_subcarpeta}' creada dentro de '{nombre_carpeta_padre}'.")      
 
-        print(f"No se encontró mensaje con asunto '{asunto}' en la carpeta '{nombre_carpeta_origen}'.")
 
     # String para imprimir
     def __str__(self):
