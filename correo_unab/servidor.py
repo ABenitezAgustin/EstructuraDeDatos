@@ -31,7 +31,8 @@ class Servidor:                     #La clase servidor se encarga de articular l
 (4) Mover mensaje entre carpetas
 (5) Buscar mensaje
 (6) Agregar subcarpetas
-(7) Salir
+(7) Agregar filtro automatico
+(8) Salir
 Opción: """))
 
                 if opcion == 1:
@@ -44,12 +45,15 @@ Opción: """))
 
                     asunto = input("Asunto del mensaje: ")
                     contenido = input("Contenido del mensaje: ")
-                    usuario_actual.enviar_mensaje(destinatario, asunto, contenido)
+                    urgente_input = input("¿Es urgente? (s/n): ").lower()
+                    urgente = True if urgente_input == "s" else False
+                    usuario_actual.enviar_mensaje(destinatario, asunto, contenido, urgente = urgente)
 
                 elif opcion == 2:
                     usuario_actual.mostrar_bandeja_entrada()
 
                 elif opcion == 3:
+                    usuario_actual.procesar_mensajes_urgentes_salida()  # procesamos antes de mostrar bandeja
                     usuario_actual.mostrar_bandeja_salida()
 
                 elif opcion == 4:
@@ -67,8 +71,14 @@ Opción: """))
                   carpeta_padre = input("Nombre de la carpeta donde crear la subcarpeta: ")
                   nombre_subcarpeta = input("Nombre de la nueva subcarpeta: ")
                   usuario_actual.crear_subcarpeta(carpeta_padre, nombre_subcarpeta)
-
+                
                 elif opcion == 7:
+                  criterio = input("Criterio (asunto / remitente / contenido): ").lower()
+                  texto = input("Texto a detectar: ").lower()
+                  carpeta_destino = input("Carpeta destino: ")
+                  usuario_actual.agregar_filtro(criterio, texto, carpeta_destino)
+
+                elif opcion == 8:
                   print("Sesión finalizada.")
                   break
 

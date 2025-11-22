@@ -1,8 +1,8 @@
 class Carpeta:
     def __init__(self, nombre):
         self.nombre = nombre
-        self.mensajes = []
-        self.subcarpetas = []
+        self.mensajes = [] #contenido del nodo
+        self.subcarpetas = [] #hijos del nodo
 
     def agregar_mensaje(self, mensaje):
         self.mensajes.append(mensaje)

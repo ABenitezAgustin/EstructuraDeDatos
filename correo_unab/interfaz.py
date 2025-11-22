@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-import re
 class Interfaz:                  #clase abstracta, modelo de interfaz(debe ser heredada por las diferentes clases usuario)
     @abstractmethod              
     def enviar_mensaje(self, destinatario, asunto, contenido): 

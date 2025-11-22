@@ -1,6 +1,9 @@
 from interfaz import Interfaz
 from mensaje import Mensaje
 from carpeta import Carpeta
+from cola import Cola, enqueue, dequeue, is_empty
+from filtros import GestorFiltros
+from urgentes import GestorUrgentes
 
 class Usuario(Interfaz):
     def __init__(self, nombre, correo, contraseña):
@@ -8,109 +11,114 @@ class Usuario(Interfaz):
         self.__correo = correo
         self.__contraseña = contraseña
 
-        # Carpeta raíz que contiene todas las subcarpetas
-        self.carpeta_principal = Carpeta("Principal")            #Utilizamos una estructura de arbol para organizar carpetas y subcarpetas 
-        # Carpetas básicas dentro de la raíz
+        # Carpeta raíz y subcarpetas básicas 
+        self.carpeta_principal = Carpeta("Principal")
         self.carpeta_entrada = Carpeta("Bandeja de Entrada")
         self.carpeta_enviados = Carpeta("Bandeja de Salida")
-
-        # Agregar subcarpetas a la carpeta principal
         self.carpeta_principal.agregar_subcarpeta(self.carpeta_entrada)
         self.carpeta_principal.agregar_subcarpeta(self.carpeta_enviados)
 
-    # Getters y setters usando decoradores
+        # Colas para mensajes con prioridad
+        self.cola_prioridad_entrada = Cola()
+        self.cola_prioridad_salida = Cola()
+
+        # Filtros
+        self.filtros = {"asunto": [], "remitente": [], "contenido": []}
+
+        # Gestores
+        self.gestor_filtros = GestorFiltros(self)
+        self.gestor_urgentes = GestorUrgentes(self)
+
+    # --- Getters y setters ---
     @property
     def nombre(self):
         return self.__nombre
-
-    @nombre.setter
-    def nombre(self, nuevo_nombre):
-        self.__nombre = nuevo_nombre
 
     @property
     def correo(self):
         return self.__correo
 
-    @correo.setter
-    def correo(self, nuevo_correo):
-        self.__correo = nuevo_correo
-
     @property
     def contraseña(self):
         return self.__contraseña
+
+    @nombre.setter
+    def nombre(self, nuevo_nombre):
+        self.__nombre = nuevo_nombre
+
+    @correo.setter
+    def correo(self, nuevo_correo):
+        self.__correo = nuevo_correo
 
     @contraseña.setter
     def contraseña(self, nueva_contraseña):
         self.__contraseña = nueva_contraseña
 
-    # Métodos para enviar y recibir mensajes
-    def enviar_mensaje(self, destinatario, asunto, contenido):
+    # --- Métodos de envío y recepción ---
+    def enviar_mensaje(self, destinatario, asunto, contenido, urgente=False):
         mensaje = Mensaje(self.correo, destinatario.correo, asunto, contenido)
-        self.carpeta_enviados.agregar_mensaje(mensaje)
-        destinatario.recibir_mensaje(mensaje)
+        if urgente:
+            enqueue(self.cola_prioridad_salida, mensaje)
+        else:
+            self.carpeta_enviados.agregar_mensaje(mensaje)
+        destinatario.recibir_mensaje(mensaje, urgente)
 
-    def recibir_mensaje(self, mensaje):
-        self.carpeta_entrada.agregar_mensaje(mensaje)
+    def recibir_mensaje(self, mensaje, urgente=False):
+        if urgente:
+            enqueue(self.cola_prioridad_entrada, mensaje)
+            return
 
-    # Mostrar bandejas
+        carpeta_destino = self.gestor_filtros.aplicar(mensaje)
+        if carpeta_destino:
+            carpeta_destino.agregar_mensaje(mensaje)
+        else:
+            self.carpeta_entrada.agregar_mensaje(mensaje)
+
+    # --- Procesar mensajes urgentes ---
+    def procesar_mensajes_urgentes_entrada(self):
+        self.gestor_urgentes.procesar_entrada()
+
+    def procesar_mensajes_urgentes_salida(self):
+        self.gestor_urgentes.procesar_salida()
+
+    # --- Mostrar bandejas ---
     def mostrar_bandeja_entrada(self):
+        self.procesar_mensajes_urgentes_entrada()
         print(f"\nBandeja de entrada de {self.nombre}:")
         self.carpeta_entrada.mostrar_mensajes()
 
     def mostrar_bandeja_salida(self):
+        self.procesar_mensajes_urgentes_salida()
         print(f"\nBandeja de salida de {self.nombre}:")
         self.carpeta_enviados.mostrar_mensajes()
 
-    
+    # --- Filtros ---
+    def agregar_filtro(self, criterio, texto, carpeta_destino):
+        self.gestor_filtros.agregar(criterio, texto, carpeta_destino)
 
-    # Búsqueda recursiva
-    def buscar_mensajes(self, criterio, valor):              
-        
-        if criterio not in ['asunto', 'remitente', 'contenido']:
-            print(f"Criterio inválido: '{criterio}'. Usa 'asunto', 'remitente' o 'contenido'.")
-            return
-
-        resultados = self.carpeta_principal.buscar_mensajes(criterio, valor) #Utilizamos el metodo buscar mensaje que definimos en la clase carpeta para hacer la busqueda recursiva
-        if resultados:
-            print(f"\nSe encontraron {len(resultados)} mensajes con {criterio} que contiene '{valor}':")
-            for mensaje in resultados:
-                mensaje.mostrar()
-        else:
-            print(f"\nNo se encontraron mensajes con {criterio} que contenga '{valor}'.")
-
-    # Mover mensaje entre carpetas
-    def mover_mensaje(self, asunto, nombre_carpeta_origen, nombre_carpeta_destino):
-      origen = self.carpeta_principal.buscar_subcarpeta(nombre_carpeta_origen)
-      destino = self.carpeta_principal.buscar_subcarpeta(nombre_carpeta_destino)
-
-      if not origen:
-          print(f"La carpeta de origen '{nombre_carpeta_origen}' no existe.")
-          return
-      if not destino:
-          print(f"La carpeta de destino '{nombre_carpeta_destino}' no existe.")
-          return
-
-    # Llamamos al nuevo método recursivo
-      movido = origen.mover_mensaje_recursivo(asunto, destino)
-      if not movido:
-          print(f"No se encontró mensaje con asunto '{asunto}' en la carpeta '{nombre_carpeta_origen}' ni en sus subcarpetas.")
-    
+    # --- Crear subcarpeta ---
     def crear_subcarpeta(self, nombre_carpeta_padre, nombre_subcarpeta):
-     # Buscar la carpeta padre dentro del árbol
-      carpeta_padre = self.carpeta_principal.buscar_subcarpeta(nombre_carpeta_padre)
-    
-      if not carpeta_padre:
-          print(f"No se encontró la carpeta '{nombre_carpeta_padre}'.")
-          return
-    
-      # Crear la nueva subcarpeta
-      nueva_subcarpeta = Carpeta(nombre_subcarpeta)
-      carpeta_padre.agregar_subcarpeta(nueva_subcarpeta)
-      print(f"Subcarpeta '{nombre_subcarpeta}' creada dentro de '{nombre_carpeta_padre}'.")      
+        carpeta_padre = self.carpeta_principal.buscar_subcarpeta(nombre_carpeta_padre)
+        if carpeta_padre:
+            carpeta_padre.agregar_subcarpeta(Carpeta(nombre_subcarpeta))
+        else:
+            print(f"No se encontró la carpeta '{nombre_carpeta_padre}'")
 
+    # --- Buscar y mover mensajes ---
+    def buscar_mensajes(self, criterio, valor):
+        resultados = self.carpeta_principal.buscar_mensajes(criterio, valor)
+        return resultados
 
-    # String para imprimir
+    def mover_mensaje(self, asunto, nombre_carpeta_origen, nombre_carpeta_destino):
+        origen = self.carpeta_principal.buscar_subcarpeta(nombre_carpeta_origen)
+        destino = self.carpeta_principal.buscar_subcarpeta(nombre_carpeta_destino)
+        if origen and destino:
+            movido = origen.mover_mensaje_recursivo(asunto, destino)
+            if not movido:
+                print(f"No se encontró mensaje con asunto '{asunto}' en '{nombre_carpeta_origen}'")
+        else:
+            print("Carpeta origen o destino no encontrada")
+
+    # --- String ---
     def __str__(self):
-        return f"El usuario se llama {self.nombre} y su correo electrónico es {self.correo}"
-
-        
+        return f"Usuario: {self.nombre}, Correo: {self.correo}"
